@@ -1,914 +1,205 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CURIOUS — A Daily Dose of Wonder</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Cormorant+Garamond:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  :root {
-    --ink: #0a0a0f;
-    --paper: #f5f0e8;
-    --amber: #c8820a;
-    --gold: #e8a030;
-    --rust: #8b3a1a;
-    --sage: #3d5a4a;
-    --cream: #faf7f0;
-    --muted: #8a8070;
-  }
-
-  html { scroll-behavior: smooth; }
-
-  body {
-    background: var(--ink);
-    color: var(--paper);
-    font-family: 'Space Mono', monospace;
-    overflow-x: hidden;
-    cursor: none;
-  }
-
-  /* CUSTOM CURSOR */
-  .cursor {
-    position: fixed;
-    width: 12px; height: 12px;
-    background: var(--gold);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9999;
-    transition: transform 0.1s ease;
-    mix-blend-mode: screen;
-  }
-  .cursor-ring {
-    position: fixed;
-    width: 40px; height: 40px;
-    border: 1px solid rgba(232,160,48,0.4);
-    border-radius: 50%;
-    pointer-events: none;
-    z-index: 9998;
-    transition: all 0.15s ease;
-  }
-
-  /* NOISE OVERLAY */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E");
-    opacity: 0.03;
-    pointer-events: none;
-    z-index: 1000;
-  }
-
-  /* HERO */
-  .hero {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    padding: 2rem;
-  }
-
-  .hero-bg {
-    position: absolute;
-    inset: 0;
-    background: 
-      radial-gradient(ellipse 80% 60% at 20% 80%, rgba(200,130,10,0.12) 0%, transparent 60%),
-      radial-gradient(ellipse 60% 80% at 80% 20%, rgba(61,90,74,0.15) 0%, transparent 60%),
-      radial-gradient(ellipse 40% 40% at 60% 60%, rgba(139,58,26,0.08) 0%, transparent 50%);
-  }
-
-  .orbit-container {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-  }
-
-  .orbit {
-    position: absolute;
-    border: 1px solid rgba(232,160,48,0.08);
-    border-radius: 50%;
-    animation: spin linear infinite;
-  }
-  .orbit:nth-child(1) { width: 600px; height: 600px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-duration: 40s; }
-  .orbit:nth-child(2) { width: 900px; height: 900px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-duration: 70s; animation-direction: reverse; border-color: rgba(61,90,74,0.06); }
-  .orbit:nth-child(3) { width: 1200px; height: 1200px; top: 50%; left: 50%; transform: translate(-50%,-50%); animation-duration: 120s; border-color: rgba(232,160,48,0.04); }
-
-  .orbit-dot {
-    position: absolute;
-    width: 6px; height: 6px;
-    background: var(--gold);
-    border-radius: 50%;
-    top: -3px; left: 50%;
-    box-shadow: 0 0 12px var(--gold);
-  }
-
-  @keyframes spin { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
-
-  .hero-eyebrow {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.4em;
-    text-transform: uppercase;
-    color: var(--amber);
-    margin-bottom: 2rem;
-    opacity: 0;
-    animation: fadeUp 1s ease forwards 0.3s;
-  }
-
-  .hero-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(5rem, 15vw, 13rem);
-    line-height: 0.9;
-    text-align: center;
-    position: relative;
-    z-index: 1;
-    opacity: 0;
-    animation: fadeUp 1.2s ease forwards 0.5s;
-  }
-
-  .hero-title .line1 { display: block; color: var(--paper); }
-  .hero-title .line2 { display: block; color: var(--amber); font-style: italic; }
-
-  .hero-sub {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(1rem, 2.5vw, 1.4rem);
-    color: var(--muted);
-    text-align: center;
-    max-width: 500px;
-    margin-top: 2rem;
-    line-height: 1.7;
-    opacity: 0;
-    animation: fadeUp 1s ease forwards 0.9s;
-  }
-
-  .scroll-hint {
-    position: absolute;
-    bottom: 3rem;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
-    color: var(--muted);
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    opacity: 0;
-    animation: fadeUp 1s ease forwards 1.5s;
-  }
-
-  .scroll-line {
-    width: 1px;
-    height: 50px;
-    background: linear-gradient(to bottom, var(--amber), transparent);
-    animation: scrollPulse 2s ease-in-out infinite;
-  }
-
-  @keyframes scrollPulse { 0%,100% { opacity: 0.3; transform: scaleY(1); } 50% { opacity: 1; transform: scaleY(1.1); } }
-  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-
-  /* COUNTER SECTION */
-  .counter-section {
-    padding: 6rem 2rem;
-    display: flex;
-    justify-content: center;
-    gap: 4rem;
-    flex-wrap: wrap;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    border-bottom: 1px solid rgba(255,255,255,0.06);
-    background: rgba(255,255,255,0.01);
-  }
-
-  .stat {
-    text-align: center;
-  }
-  .stat-num {
-    font-family: 'DM Serif Display', serif;
-    font-size: 3.5rem;
-    color: var(--gold);
-    line-height: 1;
-  }
-  .stat-label {
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    color: var(--muted);
-    text-transform: uppercase;
-    margin-top: 0.5rem;
-  }
-
-  /* MAIN CARDS SECTION */
-  .section-header {
-    text-align: center;
-    padding: 6rem 2rem 3rem;
-  }
-
-  .section-tag {
-    font-size: 0.6rem;
-    letter-spacing: 0.4em;
-    color: var(--amber);
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-  }
-
-  .section-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(2.5rem, 6vw, 5rem);
-    line-height: 1.1;
-    color: var(--paper);
-  }
-
-  .section-title em {
-    font-style: italic;
-    color: var(--amber);
-  }
-
-  /* CATEGORY FILTER */
-  .filters {
-    display: flex;
-    justify-content: center;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    padding: 0 2rem 3rem;
-  }
-
-  .filter-btn {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    padding: 0.5rem 1.2rem;
-    border: 1px solid rgba(255,255,255,0.15);
-    background: transparent;
-    color: var(--muted);
-    cursor: none;
-    transition: all 0.2s ease;
-    border-radius: 2px;
-  }
-
-  .filter-btn:hover, .filter-btn.active {
-    border-color: var(--amber);
-    color: var(--amber);
-    background: rgba(200,130,10,0.08);
-  }
-
-  /* CARDS GRID */
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-    gap: 1.5px;
-    padding: 0;
-    max-width: 1400px;
-    margin: 0 auto;
-  }
-
-  .card {
-    position: relative;
-    padding: 3rem 2.5rem;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid rgba(255,255,255,0.05);
-    overflow: hidden;
-    cursor: none;
-    transition: all 0.4s ease;
-    opacity: 0;
-    transform: translateY(20px);
-    animation: cardReveal 0.6s ease forwards;
-  }
-
-  .card:nth-child(1) { animation-delay: 0.1s; }
-  .card:nth-child(2) { animation-delay: 0.15s; }
-  .card:nth-child(3) { animation-delay: 0.2s; }
-  .card:nth-child(4) { animation-delay: 0.25s; }
-  .card:nth-child(5) { animation-delay: 0.3s; }
-  .card:nth-child(6) { animation-delay: 0.35s; }
-  .card:nth-child(7) { animation-delay: 0.4s; }
-  .card:nth-child(8) { animation-delay: 0.45s; }
-  .card:nth-child(9) { animation-delay: 0.5s; }
-
-  @keyframes cardReveal { to { opacity: 1; transform: translateY(0); } }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(232,160,48,0.06), transparent);
-    opacity: 0;
-    transition: opacity 0.4s ease;
-  }
-
-  .card::after {
-    content: '';
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(to right, transparent, var(--amber), transparent);
-    transform: scaleX(0);
-    transition: transform 0.4s ease;
-  }
-
-  .card:hover {
-    background: rgba(255,255,255,0.04);
-    transform: translateY(-4px);
-  }
-  .card:hover::before { opacity: 1; }
-  .card:hover::after { transform: scaleX(1); }
-
-  .card-category {
-    font-size: 0.55rem;
-    letter-spacing: 0.35em;
-    text-transform: uppercase;
-    margin-bottom: 1.5rem;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .cat-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
-
-  .card-number {
-    position: absolute;
-    top: 2rem; right: 2rem;
-    font-family: 'DM Serif Display', serif;
-    font-size: 5rem;
-    line-height: 1;
-    color: rgba(255,255,255,0.03);
-    pointer-events: none;
-    transition: color 0.4s ease;
-  }
-  .card:hover .card-number { color: rgba(232,160,48,0.06); }
-
-  .card-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
-    line-height: 1.25;
-    color: var(--paper);
-    margin-bottom: 1rem;
-  }
-
-  .card-body {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.05rem;
-    line-height: 1.75;
-    color: rgba(245,240,232,0.65);
-  }
-
-  .card-reveal {
-    margin-top: 1.5rem;
-    padding-top: 1.5rem;
-    border-top: 1px solid rgba(255,255,255,0.07);
-    display: none;
-  }
-
-  .card-reveal.visible { display: block; animation: fadeUp 0.4s ease; }
-
-  .reveal-btn {
-    margin-top: 1.5rem;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.6rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    color: var(--amber);
-    background: none;
-    border: none;
-    cursor: none;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    transition: gap 0.2s ease;
-  }
-  .reveal-btn:hover { gap: 0.8rem; }
-  .reveal-btn .arrow { transition: transform 0.2s ease; }
-  .reveal-btn:hover .arrow { transform: translateX(4px); }
-
-  .card-fact {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.1rem;
-    font-style: italic;
-    color: var(--gold);
-    line-height: 1.6;
-  }
-
-  /* CATEGORY COLORS */
-  .cat-physics .cat-dot { background: #4a9eff; }
-  .cat-physics { color: #4a9eff; }
-  .cat-math .cat-dot { background: var(--gold); }
-  .cat-math { color: var(--gold); }
-  .cat-biology .cat-dot { background: #5cb85c; }
-  .cat-biology { color: #5cb85c; }
-  .cat-philosophy .cat-dot { background: #c47aff; }
-  .cat-philosophy { color: #c47aff; }
-  .cat-history .cat-dot { background: var(--rust); }
-  .cat-history { color: #e05a2a; }
-  .cat-psychology .cat-dot { background: #ff7a9a; }
-  .cat-psychology { color: #ff7a9a; }
-
-  /* BIG QUOTE SECTION */
-  .quote-section {
-    padding: 8rem 2rem;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .quote-section::before {
-    content: '"';
-    position: absolute;
-    top: -2rem; left: 50%;
-    transform: translateX(-50%);
-    font-family: 'DM Serif Display', serif;
-    font-size: 30rem;
-    color: rgba(255,255,255,0.015);
-    line-height: 1;
-    pointer-events: none;
-  }
-
-  .quote-text {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(1.8rem, 4vw, 3.2rem);
-    line-height: 1.4;
-    max-width: 800px;
-    margin: 0 auto;
-    color: var(--paper);
-    position: relative;
-    z-index: 1;
-  }
-
-  .quote-text em { color: var(--amber); font-style: italic; }
-
-  .quote-author {
-    margin-top: 2rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.3em;
-    color: var(--muted);
-    text-transform: uppercase;
-  }
-
-  /* RANDOM FACT MACHINE */
-  .machine-section {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 4rem 2rem 8rem;
-  }
-
-  .machine-header {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: 2rem;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .machine-title {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2.5rem;
-    color: var(--paper);
-  }
-
-  .machine-title span { color: var(--amber); font-style: italic; }
-
-  .machine-box {
-    border: 1px solid rgba(255,255,255,0.12);
-    padding: 3rem;
-    position: relative;
-    background: rgba(255,255,255,0.02);
-    min-height: 200px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 2rem;
-  }
-
-  .machine-box::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 1px;
-    background: linear-gradient(to right, transparent, var(--amber) 30%, var(--amber) 70%, transparent);
-  }
-
-  .machine-fact {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: 1.5rem;
-    line-height: 1.7;
-    color: var(--paper);
-    min-height: 100px;
-    transition: all 0.4s ease;
-  }
-
-  .machine-fact.loading {
-    color: var(--muted);
-    font-style: italic;
-  }
-
-  .machine-meta {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1rem;
-  }
-
-  .machine-category {
-    font-size: 0.6rem;
-    letter-spacing: 0.3em;
-    text-transform: uppercase;
-    color: var(--amber);
-  }
-
-  .machine-btn {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
-    padding: 0.8rem 1.8rem;
-    border: 1px solid var(--amber);
-    background: transparent;
-    color: var(--amber);
-    cursor: none;
-    transition: all 0.25s ease;
-    position: relative;
-    overflow: hidden;
-  }
-
-  .machine-btn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--amber);
-    transform: translateX(-100%);
-    transition: transform 0.25s ease;
-    z-index: -1;
-  }
-
-  .machine-btn:hover { color: var(--ink); }
-  .machine-btn:hover::before { transform: translateX(0); }
-
-  /* PROGRESS BAR */
-  .reading-progress {
-    position: fixed;
-    top: 0; left: 0;
-    height: 2px;
-    background: linear-gradient(to right, var(--rust), var(--amber), var(--gold));
-    z-index: 500;
-    transition: width 0.1s ease;
-  }
-
-  /* FOOTER */
-  footer {
-    padding: 4rem 2rem;
-    text-align: center;
-    border-top: 1px solid rgba(255,255,255,0.06);
-    color: var(--muted);
-    font-size: 0.65rem;
-    letter-spacing: 0.2em;
-  }
-
-  footer span { color: var(--amber); }
-
-  /* HIDDEN CLASS */
-  .hidden { display: none !important; }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--ink); }
-  ::-webkit-scrollbar-thumb { background: var(--amber); border-radius: 2px; }
-
-  /* RESPONSIVE */
-  @media (max-width: 600px) {
-    .cards-grid { grid-template-columns: 1fr; }
-    .counter-section { gap: 2rem; }
-    .machine-box { padding: 1.5rem; }
-  }
-
-  /* GLITCH EFFECT */
-  @keyframes glitch {
-    0%,100% { transform: translate(0); }
-    20% { transform: translate(-2px, 1px); }
-    40% { transform: translate(2px, -1px); }
-    60% { transform: translate(-1px, 2px); }
-    80% { transform: translate(1px, -2px); }
-  }
-
-  .hero-title:hover .line1 { animation: glitch 0.3s ease; }
-</style>
-</head>
-<body>
-
-<div class="reading-progress" id="progress"></div>
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-
-<!-- HERO -->
-<section class="hero">
-  <div class="hero-bg"></div>
-  <div class="orbit-container">
-    <div class="orbit"><div class="orbit-dot"></div></div>
-    <div class="orbit"><div class="orbit-dot"></div></div>
-    <div class="orbit"><div class="orbit-dot"></div></div>
-  </div>
-  <p class="hero-eyebrow">A cabinet of curiosities</p>
-  <h1 class="hero-title">
-    <span class="line1">CURI</span>
-    <span class="line2">OUS</span>
-  </h1>
-  <p class="hero-sub">A collection of mind-bending ideas, paradoxes, and facts that will permanently change how you see the world.</p>
-  <div class="scroll-hint">
-    <span>Scroll to explore</span>
-    <div class="scroll-line"></div>
-  </div>
-</section>
-
-<!-- STATS -->
-<div class="counter-section">
-  <div class="stat">
-    <div class="stat-num" data-count="9">0</div>
-    <div class="stat-label">Wonders awaiting</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" data-count="6">0</div>
-    <div class="stat-label">Disciplines explored</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" data-count="1">0</div>
-    <div class="stat-label">Brain required</div>
-  </div>
-  <div class="stat">
-    <div class="stat-num" data-count="∞">0</div>
-    <div class="stat-label">Questions raised</div>
-  </div>
-</div>
-
-<!-- QUOTE -->
-<div class="quote-section">
-  <p class="quote-text">
-    The cure for boredom is <em>curiosity.</em><br>
-    There is no cure for curiosity.
-  </p>
-  <p class="quote-author">— Dorothy Parker</p>
-</div>
-
-<!-- CARDS -->
-<div class="section-header">
-  <p class="section-tag">// explore by category</p>
-  <h2 class="section-title">Things that will <em>haunt</em> you</h2>
-</div>
-
-<div class="filters">
-  <button class="filter-btn active" onclick="filterCards('all')">All</button>
-  <button class="filter-btn" onclick="filterCards('physics')">Physics</button>
-  <button class="filter-btn" onclick="filterCards('math')">Math</button>
-  <button class="filter-btn" onclick="filterCards('biology')">Biology</button>
-  <button class="filter-btn" onclick="filterCards('philosophy')">Philosophy</button>
-  <button class="filter-btn" onclick="filterCards('history')">History</button>
-  <button class="filter-btn" onclick="filterCards('psychology')">Psychology</button>
-</div>
-
-<div class="cards-grid" id="cardsGrid">
-
-  <div class="card" data-cat="physics">
-    <div class="card-number">01</div>
-    <div class="card-category cat-physics"><div class="cat-dot"></div>Physics</div>
-    <h3 class="card-title">You are mostly empty space</h3>
-    <p class="card-body">If you removed all the empty space from every atom in every human on Earth, all of humanity would fit into a sugar cube.</p>
-    <div class="card-reveal" id="rev1">
-      <p class="card-fact">Atoms are 99.9999999999996% empty space. The nucleus is to an atom what a fly is to a cathedral. The "solid" table you're resting on isn't solid — it's electromagnetic forces giving the illusion of solidity.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev1', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="math">
-    <div class="card-number">02</div>
-    <div class="card-category cat-math"><div class="cat-dot"></div>Mathematics</div>
-    <h3 class="card-title">Some infinities are bigger than others</h3>
-    <p class="card-body">Not all infinities are equal. The infinity of real numbers is provably, mathematically larger than the infinity of whole numbers.</p>
-    <div class="card-reveal" id="rev2">
-      <p class="card-fact">Georg Cantor proved this in 1874. Between 0 and 1 alone, there are more real numbers than there are integers in all of infinity. He called different sizes of infinity "cardinalities." His contemporaries thought he was insane. He died in an asylum. He was right.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev2', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="biology">
-    <div class="card-number">03</div>
-    <div class="card-category cat-biology"><div class="cat-dot"></div>Biology</div>
-    <h3 class="card-title">You are a community, not an individual</h3>
-    <p class="card-body">Your body contains roughly 38 trillion bacteria — slightly more than your own human cells. You are, technically, a collective organism.</p>
-    <div class="card-reveal" id="rev3">
-      <p class="card-fact">These microbes influence your mood (via the gut-brain axis), your immune system, your weight, and possibly your personality. When you feel "like yourself," a significant portion of that self is microbial. The line between "you" and "not you" is genuinely blurry.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev3', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="philosophy">
-    <div class="card-number">04</div>
-    <div class="card-category cat-philosophy"><div class="cat-dot"></div>Philosophy</div>
-    <h3 class="card-title">The Ship of Theseus never ended</h3>
-    <p class="card-body">If every plank of a ship is replaced over time, is it still the same ship? The ancient Greeks asked this. We still can't answer it.</p>
-    <div class="card-reveal" id="rev4">
-      <p class="card-fact">Your body replaces most of its atoms every few years. Are you the same person you were at 8? The Sugababes replaced every original member — yet continued as a band. Bands, corporations, nations, and selves all face this problem. Identity may be a story we tell, not a fact we discover.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev4', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="math">
-    <div class="card-number">05</div>
-    <div class="card-category cat-math"><div class="cat-dot"></div>Mathematics</div>
-    <h3 class="card-title">The Monty Hall Problem</h3>
-    <p class="card-body">Three doors. One car. You pick one. The host reveals a goat behind another. Should you switch? Yes — always. It doubles your odds.</p>
-    <div class="card-reveal" id="rev5">
-      <p class="card-fact">Switching wins 2/3 of the time. Thousands of mathematicians wrote furious letters insisting this was wrong. It took computer simulations to convince them. The lesson: human intuition about probability is systematically, profoundly broken. Context changes probability. Always.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev5', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="physics">
-    <div class="card-number">06</div>
-    <div class="card-category cat-physics"><div class="cat-dot"></div>Physics</div>
-    <h3 class="card-title">Time moves slower when you move faster</h3>
-    <p class="card-body">A clock on a fast-moving rocket ticks slower than one on Earth. This isn't metaphor — GPS satellites must correct for it or your maps drift by miles per day.</p>
-    <div class="card-reveal" id="rev6">
-      <p class="card-fact">Einstein's special relativity is not theoretical — it's embedded in technology. Astronaut Scott Kelly returned from a year in space 8.6 milliseconds younger than his twin brother. Time dilation is real, measurable, and absolutely wild when you sit with it.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev6', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="history">
-    <div class="card-number">07</div>
-    <div class="card-category cat-history"><div class="cat-dot"></div>History</div>
-    <h3 class="card-title">Cleopatra is closer to us than to the pyramids</h3>
-    <p class="card-body">Cleopatra lived around 30 BC. The pyramids were built around 2560 BC. She is historically closer to the Moon landing than to their construction.</p>
-    <div class="card-reveal" id="rev7">
-      <p class="card-fact">The pyramids are so ancient that woolly mammoths were still alive when they were built. Our intuition for deep time is catastrophically bad. History isn't a single thread — it's geological layers. Ancient Rome and ancient Egypt barely overlap. Shakespeare and the Jamestown colony are contemporaries.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev7', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="psychology">
-    <div class="card-number">08</div>
-    <div class="card-category cat-psychology"><div class="cat-dot"></div>Psychology</div>
-    <h3 class="card-title">You make decisions before you know it</h3>
-    <p class="card-body">Brain scans show your brain decides to move your hand up to 10 seconds before you consciously "decide" to. Free will may be a story told after the fact.</p>
-    <div class="card-reveal" id="rev8">
-      <p class="card-fact">The Libet experiment and its successors suggest that conscious intention may be a post-hoc narrative — your brain acts, then you experience the feeling of deciding. This doesn't necessarily eliminate free will, but it radically reframes what it could possibly mean.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev8', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-  <div class="card" data-cat="philosophy">
-    <div class="card-number">09</div>
-    <div class="card-category cat-philosophy"><div class="cat-dot"></div>Philosophy</div>
-    <h3 class="card-title">Why does anything exist at all?</h3>
-    <p class="card-body">Leibniz called it the fundamental question of metaphysics: why is there something rather than nothing? No one has ever answered it. Not even close.</p>
-    <div class="card-reveal" id="rev9">
-      <p class="card-fact">Every scientific explanation assumes the existence of something — laws, particles, fields — to explain something else. But why do those things exist? You can't explain existence with existence. This may be permanently outside the reach of human knowledge. Sit with that.</p>
-    </div>
-    <button class="reveal-btn" onclick="toggleReveal('rev9', this)">
-      Go deeper <span class="arrow">→</span>
-    </button>
-  </div>
-
-</div>
-
-<!-- RANDOM FACT MACHINE -->
-<div class="machine-section">
-  <div class="machine-header">
-    <h2 class="machine-title">The Wonder <span>Machine</span></h2>
-  </div>
-  <div class="machine-box">
-    <div class="machine-fact" id="machineFact">Press the button. Receive wonder.</div>
-    <div class="machine-meta">
-      <span class="machine-category" id="machineCat">// awaiting input</span>
-      <button class="machine-btn" onclick="newFact()">Generate wonder →</button>
-    </div>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  Built with <span>curiosity</span> · Knowledge is the only thing that grows when shared · Made for GitHub Pages
-</footer>
-
 <script>
-  // Cursor
-  const cursor = document.getElementById('cursor');
-  const ring = document.getElementById('cursorRing');
-  let mx = 0, my = 0, rx = 0, ry = 0;
 
-  document.addEventListener('mousemove', e => {
-    mx = e.clientX; my = e.clientY;
-    cursor.style.left = mx - 6 + 'px';
-    cursor.style.top = my - 6 + 'px';
-  });
+/* =========================
+   CUSTOM CURSOR
+========================= */
 
-  function animateRing() {
-    rx += (mx - rx - 20) * 0.12;
-    ry += (my - ry - 20) * 0.12;
-    ring.style.left = rx + 'px';
-    ring.style.top = ry + 'px';
-    requestAnimationFrame(animateRing);
-  }
-  animateRing();
+const cursor = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
 
-  document.querySelectorAll('button, a').forEach(el => {
-    el.addEventListener('mouseenter', () => cursor.style.transform = 'scale(2.5)');
-    el.addEventListener('mouseleave', () => cursor.style.transform = 'scale(1)');
-  });
+let mouseX = 0;
+let mouseY = 0;
+let ringX = 0;
+let ringY = 0;
 
-  //dynamic facts
- let wonders = [];
- let lastIdx = -1;
- 
-async function loadFacts() {
-  const response = await fetch("facts.json");
-  wonders = await response.json();
-  dailyFact();
+document.addEventListener('mousemove', (e) => {
+  mouseX = e.clientX;
+  mouseY = e.clientY;
+
+  cursor.style.left = mouseX - 6 + "px";
+  cursor.style.top = mouseY - 6 + "px";
+});
+
+function animateRing() {
+  ringX += (mouseX - ringX - 20) * 0.15;
+  ringY += (mouseY - ringY - 20) * 0.15;
+
+  ring.style.left = ringX + "px";
+  ring.style.top = ringY + "px";
+
+  requestAnimationFrame(animateRing);
 }
 
- loadFacts();
- 
-  // Reading progress
-  window.addEventListener('scroll', () => {
-    const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
-    document.getElementById('progress').style.width = pct + '%';
+animateRing();
+
+/* Hover effects */
+
+document.querySelectorAll("button, a").forEach(el => {
+  el.addEventListener("mouseenter", () => {
+    cursor.style.transform = "scale(2.5)";
   });
 
-  // Counter animation
-  function animateCounters() {
-    document.querySelectorAll('.stat-num').forEach(el => {
-      const target = el.dataset.count;
-      if (target === '∞') { el.textContent = '∞'; return; }
-      let n = 0;
-      const end = parseInt(target);
-      const step = () => {
-        n += Math.ceil((end - n) / 6);
-        el.textContent = n;
-        if (n < end) requestAnimationFrame(step);
-        else el.textContent = end;
-      };
-      step();
-    });
-  }
+  el.addEventListener("mouseleave", () => {
+    cursor.style.transform = "scale(1)";
+  });
+});
 
-  const counterObs = new IntersectionObserver(entries => {
-    if (entries[0].isIntersecting) { animateCounters(); counterObs.disconnect(); }
-  }, { threshold: 0.5 });
-  counterObs.observe(document.querySelector('.counter-section'));
 
-  // Card reveal
-  function toggleReveal(id, btn) {
-    const el = document.getElementById(id);
-    el.classList.toggle('visible');
-    const isOpen = el.classList.contains('visible');
-    btn.innerHTML = isOpen
-      ? 'Close <span class="arrow">↑</span>'
-      : 'Go deeper <span class="arrow">→</span>';
-  }
+/* =========================
+   READING PROGRESS BAR
+========================= */
 
-  // Filter cards
-  function filterCards(cat) {
-    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-    event.target.classList.add('active');
+window.addEventListener("scroll", () => {
 
-    document.querySelectorAll('.card').forEach(card => {
-      if (cat === 'all' || card.dataset.cat === cat) {
-        card.classList.remove('hidden');
+  const totalHeight =
+    document.body.scrollHeight - window.innerHeight;
+
+  const progress =
+    (window.scrollY / totalHeight) * 100;
+
+  document.getElementById("progress").style.width =
+    progress + "%";
+
+});
+
+
+/* =========================
+   COUNTER ANIMATION
+========================= */
+
+function animateCounters() {
+
+  document.querySelectorAll(".stat-num").forEach(el => {
+
+    const target = el.dataset.count;
+
+    if (target === "∞") {
+      el.textContent = "∞";
+      return;
+    }
+
+    let value = 0;
+    const end = parseInt(target);
+
+    function update() {
+
+      value += Math.ceil((end - value) / 6);
+
+      el.textContent = value;
+
+      if (value < end) {
+        requestAnimationFrame(update);
       } else {
-        card.classList.add('hidden');
+        el.textContent = end;
       }
-    });
+
+    }
+
+    update();
+
+  });
+
+}
+
+const counterObserver =
+  new IntersectionObserver(entries => {
+
+    if (entries[0].isIntersecting) {
+      animateCounters();
+      counterObserver.disconnect();
+    }
+
+  }, { threshold: 0.5 });
+
+counterObserver.observe(
+  document.querySelector(".counter-section")
+);
+
+
+/* =========================
+   CARD REVEAL
+========================= */
+
+function toggleReveal(id, btn) {
+
+  const el = document.getElementById(id);
+
+  el.classList.toggle("visible");
+
+  const open = el.classList.contains("visible");
+
+  btn.innerHTML = open
+    ? 'Close <span class="arrow">↑</span>'
+    : 'Go deeper <span class="arrow">→</span>';
+
+}
+
+
+/* =========================
+   CARD FILTER
+========================= */
+
+function filterCards(event, category) {
+
+  document
+    .querySelectorAll(".filter-btn")
+    .forEach(b => b.classList.remove("active"));
+
+  event.target.classList.add("active");
+
+  document.querySelectorAll(".card").forEach(card => {
+
+    if (category === "all" || card.dataset.cat === category) {
+      card.classList.remove("hidden");
+    } else {
+      card.classList.add("hidden");
+    }
+
+  });
+
+}
+
+
+/* =========================
+   CURIOSITY ENGINE
+========================= */
+
+let wonders = [];
+let lastIndex = -1;
+
+
+/* Load curiosities */
+
+async function loadFacts() {
+
+  try {
+
+    const response = await fetch("facts.json");
+
+    wonders = await response.json();
+
+    dailyFact();
+
+  } catch (err) {
+
+    console.error("Facts failed to load", err);
+
+    document.getElementById("machineFact")
+      .textContent = "Curiosities failed to load.";
+
   }
 
- function dailyFact() {
+}
 
-  const el = document.getElementById("machineFact");
-  const cat = document.getElementById("machineCat");
+
+/* Daily curiosity */
+
+function dailyFact() {
+
+  if (wonders.length === 0) return;
+
+  const factEl = document.getElementById("machineFact");
+  const catEl = document.getElementById("machineCat");
 
   const today = new Date().toDateString();
 
@@ -920,34 +211,44 @@ async function loadFacts() {
 
   const index = Math.abs(hash) % wonders.length;
 
-  el.textContent = wonders[index].text;
-  cat.textContent = "// " + wonders[index].category;
-}
-  
-  let lastIdx = -1;
-  function newFact() {
+  factEl.textContent = wonders[index].text;
+  catEl.textContent = "// " + wonders[index].category;
 
-  const el = document.getElementById("machineFact");
-  const cat = document.getElementById("machineCat");
+}
+
+
+/* Random curiosity */
+
+function newFact() {
+
+  const factEl = document.getElementById("machineFact");
+  const catEl = document.getElementById("machineCat");
 
   if (wonders.length === 0) {
-    el.textContent = "Loading curiosities...";
+
+    factEl.textContent = "Loading curiosities...";
     return;
+
   }
 
-  let idx;
+  let index;
 
   do {
-    idx = Math.floor(Math.random() * wonders.length);
-  } while (idx === lastIdx);
+    index = Math.floor(Math.random() * wonders.length);
+  } while (index === lastIndex);
 
-  lastIdx = idx;
+  lastIndex = index;
 
-  const fact = wonders[idx];
+  const fact = wonders[index];
 
-  el.textContent = fact.text;
-  cat.textContent = "// " + fact.category;
+  factEl.textContent = fact.text;
+  catEl.textContent = "// " + fact.category;
+
 }
+
+
+/* Start system */
+
+loadFacts();
+
 </script>
-</body>
-</html>
