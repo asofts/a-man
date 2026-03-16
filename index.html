@@ -1,254 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>CURIOUS — A Daily Dose of Wonder</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Space+Mono&family=Cormorant+Garamond&display=swap" rel="stylesheet">
+
+<style>
+
+body{
+background:#0a0a0f;
+color:#f5f0e8;
+font-family:'Space Mono',monospace;
+margin:0;
+cursor:none;
+}
+
+.cursor{
+position:fixed;
+width:12px;
+height:12px;
+background:#e8a030;
+border-radius:50%;
+pointer-events:none;
+z-index:9999;
+}
+
+.cursor-ring{
+position:fixed;
+width:40px;
+height:40px;
+border:1px solid rgba(232,160,48,0.4);
+border-radius:50%;
+pointer-events:none;
+z-index:9998;
+}
+
+.hero{
+min-height:100vh;
+display:flex;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+text-align:center;
+}
+
+.hero h1{
+font-size:6rem;
+font-family:'DM Serif Display',serif;
+}
+
+.machine-section{
+max-width:900px;
+margin:auto;
+padding:4rem 2rem;
+}
+
+.machine-box{
+border:1px solid rgba(255,255,255,0.2);
+padding:3rem;
+background:rgba(255,255,255,0.02);
+}
+
+.machine-fact{
+font-size:1.4rem;
+font-family:'Cormorant Garamond',serif;
+line-height:1.6;
+margin-bottom:2rem;
+}
+
+.machine-btn{
+border:1px solid #e8a030;
+padding:12px 22px;
+background:none;
+color:#e8a030;
+cursor:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<section class="hero">
+<h1>CURIOUS</h1>
+<p>A daily cabinet of curiosities</p>
+</section>
+
+<div class="machine-section">
+
+<div class="machine-box">
+
+<div class="machine-fact" id="machineFact">
+Loading curiosity...
+</div>
+
+<button class="machine-btn" onclick="newFact()">
+Generate wonder →
+</button>
+
+</div>
+
+</div>
+
 <script>
 
-/* =========================
-   CUSTOM CURSOR
-========================= */
+/* =======================
+CURSOR
+======================= */
 
-const cursor = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
+const cursor = document.getElementById("cursor")
+const ring = document.getElementById("cursorRing")
 
-let mouseX = 0;
-let mouseY = 0;
-let ringX = 0;
-let ringY = 0;
+let mouseX=0
+let mouseY=0
+let ringX=0
+let ringY=0
 
-document.addEventListener('mousemove', (e) => {
-  mouseX = e.clientX;
-  mouseY = e.clientY;
+document.addEventListener("mousemove",e=>{
+mouseX=e.clientX
+mouseY=e.clientY
 
-  cursor.style.left = mouseX - 6 + "px";
-  cursor.style.top = mouseY - 6 + "px";
-});
+cursor.style.left=(mouseX-6)+"px"
+cursor.style.top=(mouseY-6)+"px"
+})
 
-function animateRing() {
-  ringX += (mouseX - ringX - 20) * 0.15;
-  ringY += (mouseY - ringY - 20) * 0.15;
+function animateRing(){
 
-  ring.style.left = ringX + "px";
-  ring.style.top = ringY + "px";
+ringX += (mouseX-ringX-20)*0.15
+ringY += (mouseY-ringY-20)*0.15
 
-  requestAnimationFrame(animateRing);
+ring.style.left = ringX+"px"
+ring.style.top = ringY+"px"
+
+requestAnimationFrame(animateRing)
 }
 
-animateRing();
+animateRing()
 
-/* Hover effects */
+document.querySelectorAll("button,a").forEach(el=>{
+el.addEventListener("mouseenter",()=>{
+cursor.style.transform="scale(2)"
+})
+el.addEventListener("mouseleave",()=>{
+cursor.style.transform="scale(1)"
+})
+})
 
-document.querySelectorAll("button, a").forEach(el => {
-  el.addEventListener("mouseenter", () => {
-    cursor.style.transform = "scale(2.5)";
-  });
+/* =======================
+FACT SYSTEM
+======================= */
 
-  el.addEventListener("mouseleave", () => {
-    cursor.style.transform = "scale(1)";
-  });
-});
+let wonders=[]
+let lastIndex=-1
 
+async function loadFacts(){
 
-/* =========================
-   READING PROGRESS BAR
-========================= */
+const res = await fetch("facts.json")
+wonders = await res.json()
 
-window.addEventListener("scroll", () => {
-
-  const totalHeight =
-    document.body.scrollHeight - window.innerHeight;
-
-  const progress =
-    (window.scrollY / totalHeight) * 100;
-
-  document.getElementById("progress").style.width =
-    progress + "%";
-
-});
-
-
-/* =========================
-   COUNTER ANIMATION
-========================= */
-
-function animateCounters() {
-
-  document.querySelectorAll(".stat-num").forEach(el => {
-
-    const target = el.dataset.count;
-
-    if (target === "∞") {
-      el.textContent = "∞";
-      return;
-    }
-
-    let value = 0;
-    const end = parseInt(target);
-
-    function update() {
-
-      value += Math.ceil((end - value) / 6);
-
-      el.textContent = value;
-
-      if (value < end) {
-        requestAnimationFrame(update);
-      } else {
-        el.textContent = end;
-      }
-
-    }
-
-    update();
-
-  });
+dailyFact()
 
 }
 
-const counterObserver =
-  new IntersectionObserver(entries => {
+function dailyFact(){
 
-    if (entries[0].isIntersecting) {
-      animateCounters();
-      counterObserver.disconnect();
-    }
+if(wonders.length===0)return
 
-  }, { threshold: 0.5 });
+const el=document.getElementById("machineFact")
 
-counterObserver.observe(
-  document.querySelector(".counter-section")
-);
+const today=new Date().toDateString()
 
+let hash=0
 
-/* =========================
-   CARD REVEAL
-========================= */
+for(let i=0;i<today.length;i++){
+hash = today.charCodeAt(i) + ((hash<<5)-hash)
+}
 
-function toggleReveal(id, btn) {
+const index=Math.abs(hash)%wonders.length
 
-  const el = document.getElementById(id);
-
-  el.classList.toggle("visible");
-
-  const open = el.classList.contains("visible");
-
-  btn.innerHTML = open
-    ? 'Close <span class="arrow">↑</span>'
-    : 'Go deeper <span class="arrow">→</span>';
+el.textContent = wonders[index].text
 
 }
 
+function newFact(){
 
-/* =========================
-   CARD FILTER
-========================= */
+if(wonders.length===0)return
 
-function filterCards(event, category) {
+let index
 
-  document
-    .querySelectorAll(".filter-btn")
-    .forEach(b => b.classList.remove("active"));
+do{
+index=Math.floor(Math.random()*wonders.length)
+}
+while(index===lastIndex)
 
-  event.target.classList.add("active");
+lastIndex=index
 
-  document.querySelectorAll(".card").forEach(card => {
-
-    if (category === "all" || card.dataset.cat === category) {
-      card.classList.remove("hidden");
-    } else {
-      card.classList.add("hidden");
-    }
-
-  });
+document.getElementById("machineFact").textContent=wonders[index].text
 
 }
 
-
-/* =========================
-   CURIOSITY ENGINE
-========================= */
-
-let wonders = [];
-let lastIndex = -1;
-
-
-/* Load curiosities */
-
-async function loadFacts() {
-
-  try {
-
-    const response = await fetch("facts.json");
-
-    wonders = await response.json();
-
-    dailyFact();
-
-  } catch (err) {
-
-    console.error("Facts failed to load", err);
-
-    document.getElementById("machineFact")
-      .textContent = "Curiosities failed to load.";
-
-  }
-
-}
-
-
-/* Daily curiosity */
-
-function dailyFact() {
-
-  if (wonders.length === 0) return;
-
-  const factEl = document.getElementById("machineFact");
-  const catEl = document.getElementById("machineCat");
-
-  const today = new Date().toDateString();
-
-  let hash = 0;
-
-  for (let i = 0; i < today.length; i++) {
-    hash = today.charCodeAt(i) + ((hash << 5) - hash);
-  }
-
-  const index = Math.abs(hash) % wonders.length;
-
-  factEl.textContent = wonders[index].text;
-  catEl.textContent = "// " + wonders[index].category;
-
-}
-
-
-/* Random curiosity */
-
-function newFact() {
-
-  const factEl = document.getElementById("machineFact");
-  const catEl = document.getElementById("machineCat");
-
-  if (wonders.length === 0) {
-
-    factEl.textContent = "Loading curiosities...";
-    return;
-
-  }
-
-  let index;
-
-  do {
-    index = Math.floor(Math.random() * wonders.length);
-  } while (index === lastIndex);
-
-  lastIndex = index;
-
-  const fact = wonders[index];
-
-  factEl.textContent = fact.text;
-  catEl.textContent = "// " + fact.category;
-
-}
-
-
-/* Start system */
-
-loadFacts();
+loadFacts()
 
 </script>
+
+</body>
+</html>
