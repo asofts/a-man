@@ -841,6 +841,18 @@
     el.addEventListener('mouseleave', () => cursor.style.transform = 'scale(1)');
   });
 
+  //dynamic facts
+ let wonders = [];
+ let lastIdx = -1;
+ 
+async function loadFacts() {
+  const response = await fetch("facts.json");
+  wonders = await response.json();
+  dailyFact();
+}
+
+ loadFacts();
+ 
   // Reading progress
   window.addEventListener('scroll', () => {
     const pct = window.scrollY / (document.body.scrollHeight - window.innerHeight) * 100;
@@ -893,41 +905,49 @@
     });
   }
 
-  // Wonder Machine
-  const wonders = [
-    { text: "There are more possible iterations of a game of chess than there are atoms in the observable universe. Chess was invented by humans. With 32 pieces.", cat: "// mathematics" },
-    { text: "The light hitting your eyes right now from the Sun left its surface 8 minutes ago. But it took that photon 100,000 years to travel from the Sun's core to its surface.", cat: "// physics" },
-    { text: "Octopuses have three hearts, blue blood, and distributed brains — two-thirds of their neurons are in their arms. Each arm can taste, feel, and think semi-independently.", cat: "// biology" },
-    { text: "The universe is 13.8 billion years old. Complex life has only existed on Earth for ~600 million years. If the universe's age were a day, humans appeared in the last 2 seconds.", cat: "// cosmology" },
-    { text: "There are more ways to arrange a deck of 52 cards than there have been seconds since the Big Bang. Every shuffled deck has almost certainly never existed before and never will again.", cat: "// mathematics" },
-    { text: "Honey found in Egyptian tombs, 3,000 years old, is still edible. Bees produce something chemically stable enough to outlast empires.", cat: "// biology" },
-    { text: "When you look at the night sky, you're looking backwards in time. The Andromeda galaxy appears as it was 2.5 million years ago — before homo sapiens existed.", cat: "// physics" },
-    { text: "The Fermi Paradox: given that the universe is 13.8 billion years old with hundreds of billions of galaxies, the silence of the cosmos is deafening. Where is everyone?", cat: "// philosophy" },
-    { text: "You have roughly 86 billion neurons, each connected to thousands of others. The number of possible brain states exceeds the number of atoms in the observable universe.", cat: "// neuroscience" },
-    { text: "Every atom of carbon in your body was forged inside a dying star. You are not just made of stardust — you are recycled stellar corpses. The iron in your blood was a supernova.", cat: "// physics" },
-    { text: "Language shapes thought. The Hopi language has no words for past or future tense — only states of being. Speakers may genuinely experience time differently than you do.", cat: "// linguistics" },
-    { text: "Quantum entanglement lets two particles influence each other instantly across any distance — faster than light. Einstein called it 'spooky action at a distance.' It's real and verified.", cat: "// quantum physics" },
-    { text: "The total weight of all ants on Earth roughly equals the total weight of all humans. For most of evolution's history, insects have dominated land biomass.", cat: "// biology" },
-    { text: "There is no scientific consensus on why we sleep. It's one of the most universal behaviors in the animal kingdom and one of the least understood. We just... have to.", cat: "// neuroscience" },
-  ];
+ function dailyFact() {
 
+  const el = document.getElementById("machineFact");
+  const cat = document.getElementById("machineCat");
+
+  const today = new Date().toDateString();
+
+  let hash = 0;
+
+  for (let i = 0; i < today.length; i++) {
+    hash = today.charCodeAt(i) + ((hash << 5) - hash);
+  }
+
+  const index = Math.abs(hash) % wonders.length;
+
+  el.textContent = wonders[index].text;
+  cat.textContent = "// " + wonders[index].category;
+}
+  
   let lastIdx = -1;
   function newFact() {
-    const el = document.getElementById('machineFact');
-    const cat = document.getElementById('machineCat');
-    el.classList.add('loading');
-    el.textContent = 'Searching the known universe...';
 
-    setTimeout(() => {
-      let idx;
-      do { idx = Math.floor(Math.random() * wonders.length); } while (idx === lastIdx);
-      lastIdx = idx;
-      const w = wonders[idx];
-      el.classList.remove('loading');
-      el.textContent = w.text;
-      cat.textContent = w.cat;
-    }, 600);
+  const el = document.getElementById("machineFact");
+  const cat = document.getElementById("machineCat");
+
+  if (wonders.length === 0) {
+    el.textContent = "Loading curiosities...";
+    return;
   }
+
+  let idx;
+
+  do {
+    idx = Math.floor(Math.random() * wonders.length);
+  } while (idx === lastIdx);
+
+  lastIdx = idx;
+
+  const fact = wonders[idx];
+
+  el.textContent = fact.text;
+  cat.textContent = "// " + fact.category;
+}
 </script>
 </body>
 </html>
